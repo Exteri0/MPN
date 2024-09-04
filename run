@@ -2,7 +2,10 @@
 
 # Check if "install" is passed as the first argument
 if [ "$1" == "install" ]; then
+  npm install -g typescript
+  echo "Typescript Installed!"
   npm install -g ts-node
+  echo "ts-node (transpiler of Typescript) Installed!"
   ts-node cliClass.ts 
 else
   echo "Invalid command. Usage: ./run install"
