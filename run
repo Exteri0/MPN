@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Check if "install" is passed as the first argument
+if [ "$1" == "install" ]; then
+  npm install -g ts-node
+  ts-node cliClass.ts 
+else
+  echo "Invalid command. Usage: ./run install"
+fi
+
