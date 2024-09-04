@@ -1,12 +1,18 @@
 #!/bin/bash
 
+errorCatch(){
+  echo "Error installing $1 as a dependency, skipping it for now."
+}
+
+
 # Check if "install" is passed as the first argument
+numDepenedencies=0
+dependencyList=('typescript' 'ts-node' 'blab341lablabla')
 if [ "$1" == "install" ]; then
-  npm install -g typescript
-  echo "Typescript Installed!"
-  npm install -g ts-node
-  echo "ts-node (transpiler of Typescript) Installed!"
-  ts-node cliClass.ts 
+  for i in ${dependencyList[@]}; do
+    echo "installing $i..."
+    (npm install -g "$i"  && echo "$i installed successfully")|| errorCatch "$1"
+  done
 else
   echo "Invalid command. Usage: ./run install"
 fi
