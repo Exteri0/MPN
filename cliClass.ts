@@ -1,3 +1,19 @@
-let x: number = 5;
+import * as fs from 'fs';
+import * as readline from 'readline';
+import { exec } from 'child_process';
+import * as url from 'url';
 
-console.log("X is a number = ", x);
+
+class CLI{
+    private inputFilePath: string;
+    private inputURL: string;
+    private cliError: boolean;
+
+   /*  public async findFile(): Promise<void>{
+        try {
+            const fileStream;
+        }
+    }
+ */
+
+}

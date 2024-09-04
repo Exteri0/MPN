@@ -1,25 +1,28 @@
 #!/bin/bash
 
-errorCatch(){
-  echo "Error installing $1 as a dependency, skipping it for now."
-  exit 1
-}
 
+#VARIABLES TRACKING DEPENDENCIES
+
+numDepenedenciesInstalledInstalled=0
+dependencyList=('typescript' 'blab341lablabla' 'ts-node')
 
 # Check if "install" is passed as the first argument
-numDepenedencies=0
-dependencyList=('typescript' 'blab341lablabla' 'ts-node')
-if [ "$1" == "install" ]; then
-  for i in ${dependencyList[@]}; do
-    echo "installing $i..."
-    if npm install "$i"; then
+if [ "$1" == "install" ]; then #the command after run is install "./run install"
+  for i in ${dependencyList[@]}; do #loop through the dependency list
+    
+    echo "installing $i..." 
+    
+    if npm install "$i"; then #check if dependency installation succeeded
       echo "$i installed successfully"
-      numDepenedencies=$((numDepenedencies + 1))
+      numDepenedenciesInstalled=$((numDepenedenciesInstalled + 1))
+    
     else
-      echo "$i installation failed, skipping"
+      echo "$i installation failed, skipping" #Failure to install dependency
     fi
-  done
-  echo "$numDepenedencies dependencies installed successfully" 
+  
+  done  
+  echo "$numDepenedenciesInstalled dependencies installed..." #print number of successfull installations 
+
 else
   echo "Invalid command. Usage: ./run install"
 fi
