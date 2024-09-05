@@ -23,7 +23,11 @@ if [ "$1" == "install" ]; then #the command after run is install "./run install"
   done  
   echo "$numDepenedenciesInstalled dependencies installed..." #print number of successfull installations 
 
+elif  [[ -f "$1" ]]; then
+  echo "Found it!!!!!"
+  ts-node cliClass.ts $1
+
 else
-  echo "Invalid command. Usage: ./run install"
+  echo "invalid command"
 fi
 
