@@ -52,7 +52,12 @@ class CLI{
         }
     }
 
+    public async getURLList(): Promise<any>{
+        return this.inputURL;
+    }
+
 };
+
 
 const argument = process.argv.slice(2);
 
@@ -66,4 +71,8 @@ let CLIObject = new CLI(argument[0]);
     await CLIObject.printPath();
     await CLIObject.startReadingFile();
     await CLIObject.printURLs();
+    let i: string;
+    for (i of await CLIObject.getURLList()) {
+        console.log(`Returned: ${i}`)
+    }
 })();
