@@ -2,28 +2,55 @@ import * as fs from 'fs';
 import * as readline from 'readline';
 import { exec } from 'child_process';
 import * as url from 'url';
+import { stdout } from 'process';
 
 
 class CLI{
     private inputFilePath: string;
-    private inputURL: string | null;
-    private cliError: boolean | null;
+    private inputURL: string[] 
+    private cliError: boolean
 
     constructor(path: string) {
         this.inputFilePath = path;
-        this.cliError = null;
-        this.inputURL = null;
+        this.cliError = false;
+        this.inputURL = [];
     }
 
-    public async printPath(): Promise<void>{
+    public printPath(): void{
         console.log(this.inputFilePath);
     }
 
-/*     public async findFile(): Promise<void>{
+    public async startReadingFile(): Promise<void>{
         try {
-            const fileStream;
+            const fileStream = fs.createReadStream(this.inputFilePath);
+            const rl = readline.createInterface({
+                input: fileStream,
+                output: undefined
+            });
+            for await (const line of rl) {
+                let packageURL: string = line.trim();
+                if (packageURL != '') {
+                    //Get package name here
+                    this.inputURL.push(packageURL);
+                }
+                else {
+                    console.error("This aint the url chief");
+
+                }
+            }
+            console.log("Loop is done!");
         }
-    } */
+        catch (error) {
+            console.error(`Error ${(error as Error).message}`);
+        }
+
+    }
+
+    public async printURLs(): Promise<void> {
+        for (const iterator in this.inputURL) {
+            console.log(`Current URL = ${this.inputURL[iterator]}`);
+        }
+    }
 
 };
 
@@ -35,4 +62,8 @@ if (argument.length != 1) {
 }
 
 let CLIObject = new CLI(argument[0]);
-CLIObject.printPath();
+(async () => {
+    await CLIObject.printPath();
+    await CLIObject.startReadingFile();
+    await CLIObject.printURLs();
+})();
