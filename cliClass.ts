@@ -5,7 +5,7 @@ import * as url from 'url';
 import { stdout } from 'process';
 
 
-class CLI{
+export class CLI{
     private inputFilePath: string;
     private inputURL: string[] 
     private cliError: boolean
@@ -57,14 +57,16 @@ class CLI{
     }
 
 };
+// AM added this so it only runs when the file is executed directly from the command line
+if(require.main === module) {
 
+    const argument = process.argv.slice(2);
 
-const argument = process.argv.slice(2);
+    if (argument.length != 1) {
+        console.error('Invalid input');
+        process.exit(1);
+    }
 
-if (argument.length != 1) {
-    console.error('Invalid input');
-    process.exit(1);
-}
 
 let CLIObject = new CLI(argument[0]);
 (async () => {
@@ -76,3 +78,4 @@ let CLIObject = new CLI(argument[0]);
         console.log(`Returned: ${i}`)
     }
 })();
+}
