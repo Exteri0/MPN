@@ -51,3 +51,13 @@ Then, run tsc which transpiles the whole typescript code and builds the javascri
 tsc
 node build/API/apiTemp
 ```
+
+## Testing
+
+For this project, we used vitest as we planned to build the web interface using vite.
+
+To start testing, run this default command in bash
+
+```bash
+npm run test
+```
