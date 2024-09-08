@@ -35,3 +35,5 @@ class GithubAPI extends ApiCalls {
         }
     }
 }
+
+export default GithubAPI
