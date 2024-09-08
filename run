@@ -22,7 +22,23 @@ if [ "$1" == "install" ]; then #the command after run is install "./run install"
   
   # done  
   # echo "$numDepenedenciesInstalled dependencies installed..." #print number of successfull installations 
-  echo "installing dependencies..."
+  counter=-3
+  actualCounter=0
+  for dep in `npm ls`
+    do
+      ((counter = counter + 1))
+      if (( counter < 0 )); then
+        # echo "skippings $dep"
+        continue
+      fi
+      if (( counter % 2 == 0 )); then
+        # echo "skipping $dep"
+        continue
+      fi
+      ((actualCounter = actualCounter + 1))
+      echo "preparing $dep"
+    done
+  echo "installing $actualCounter dependencies..."
   npm i
 
 
