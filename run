@@ -8,20 +8,23 @@ dependencyList=('typescript' 'blab341lablabla' 'ts-node')
 
 # Check if "install" is passed as the first argument
 if [ "$1" == "install" ]; then #the command after run is install "./run install"
-  for i in ${dependencyList[@]}; do #loop through the dependency list
+  # for i in ${dependencyList[@]}; do #loop through the dependency list
     
-    echo "installing $i..." 
+  #   echo "installing $i..." 
     
-    if npm install "$i"; then #check if dependency installation succeeded
-      echo "$i installed successfully"
-      numDepenedenciesInstalled=$((numDepenedenciesInstalled + 1))
+  #   if npm install "$i"; then #check if dependency installation succeeded
+  #     echo "$i installed successfully"
+  #     numDepenedenciesInstalled=$((numDepenedenciesInstalled + 1))
     
-    else
-      echo "$i installation failed, skipping" #Failure to install dependency
-    fi
+  #   else
+  #     echo "$i installation failed, skipping" #Failure to install dependency
+  #   fi
   
-  done  
-  echo "$numDepenedenciesInstalled dependencies installed..." #print number of successfull installations 
+  # done  
+  # echo "$numDepenedenciesInstalled dependencies installed..." #print number of successfull installations 
+  echo "installing dependencies..."
+  npm i
+
 
 elif  [[ -f "$1" ]]; then
   echo "Found it!!!!!"
