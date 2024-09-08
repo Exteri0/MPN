@@ -18,6 +18,7 @@
         "typescript": "^5.5.4",
         "undici-types": "^6.19.8",
         "v8-compile-cache-lib": "^3.0.1",
+        "vitest": "^2.0.5",
         "yn": "^3.1.1"
     },
     "type": "module",

@@ -1,8 +1,5 @@
 import * as fs from 'fs'
 import * as readline from 'readline'
-import { exec } from 'child_process'
-import * as url from 'url'
-import { stdout } from 'process'
 
 export class CLI {
     private inputFilePath: string
@@ -62,7 +59,7 @@ if (require.main === module) {
 
     let CLIObject = new CLI(argument[0])
     ;(async () => {
-        await CLIObject.printPath()
+        CLIObject.printPath()
         await CLIObject.startReadingFile()
         await CLIObject.printURLs()
         let i: string
