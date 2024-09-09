@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as readline from 'readline'
+import ApiCalls from './API/apiCalls.js'
 
 class CLI {
     private inputFilePath: string
@@ -61,8 +62,7 @@ let CLIObject = new CLI(argument[0])
     CLIObject.printPath()
     await CLIObject.startReadingFile()
     await CLIObject.printURLs()
-    let i: string
-    for (i of await CLIObject.getURLList()) {
-        console.log(`Returned: ${i}`)
-    }
+    let urls = await CLIObject.getURLList()
+    const API = new ApiCalls(urls)
+    await API.callAPI()
 })()

@@ -36,5 +36,8 @@
         "url": "https://github.com/Exteri0/MPN"
     },
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "tsconfig-paths": "^4.2.0"
+    }
 }
