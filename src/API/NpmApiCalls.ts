@@ -14,7 +14,7 @@ export default class NpmApiCalls extends ApiCalls {
             if (type === 'npm') {
                 await this.handleNpmAPI(repo)
             }
-        }
+        }i
         return this.callReturnCode
     }
 }
