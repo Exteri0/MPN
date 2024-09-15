@@ -1,7 +1,8 @@
 import * as fs from 'fs'
 import * as readline from 'readline'
+import Api from './API/api.js'
 
-export class CLI {
+class CLI {
     private inputFilePath: string
     private inputURL: string[]
     private cliError: boolean
@@ -48,23 +49,20 @@ export class CLI {
         return this.inputURL
     }
 }
-// AM added this so it only runs when the file is executed directly from the command line
-if (require.main === module) {
-    const argument = process.argv.slice(2)
 
-    if (argument.length != 1) {
-        console.error('Invalid input')
-        process.exit(1)
-    }
+const argument = process.argv.slice(2)
 
-    let CLIObject = new CLI(argument[0])
-    ;(async () => {
-        CLIObject.printPath()
-        await CLIObject.startReadingFile()
-        await CLIObject.printURLs()
-        let i: string
-        for (i of await CLIObject.getURLList()) {
-            console.log(`Returned: ${i}`)
-        }
-    })()
+if (argument.length != 1) {
+    console.error('Invalid input')
+    process.exit(1)
 }
+
+let CLIObject = new CLI(argument[0])
+;(async () => {
+    CLIObject.printPath()
+    await CLIObject.startReadingFile()
+    await CLIObject.printURLs()
+    let urls = await CLIObject.getURLList()
+    const API = new Api(urls)
+    await API.callAPI()
+})()
