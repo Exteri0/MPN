@@ -22,7 +22,7 @@ export default class GitHubApiCalls extends ApiCalls {
             })
             .then((response: any) => response.data)
 
-            const rampUpData = RampUpTime.calculateRampUpTime({                
+            const rampUpData = RampUpTime.calculateRampUpTime({
                 stargazers_count: response.stargazers_count,
                 forks_count: response.forks_count,
                 open_issues_count: response.open_issues_count,
@@ -34,7 +34,14 @@ export default class GitHubApiCalls extends ApiCalls {
             
             console.log({
                 name: response.name,
-                license: rampUpData,
+                stargazers_count: response.stargazers_count,
+                forks_count: response.forks_count,
+                open_issues_count: response.open_issues_count,
+                watchers_count: response.watchers_count,
+                has_wiki: response.has_wiki,
+                has_pages: response.has_pages,
+                has_discussions: response.has_discussions,
+                rampUpScore: rampUpData,
             })
     }
 }
