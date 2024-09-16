@@ -2,30 +2,29 @@ import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-/*
+import { fileURLToPath } from 'url';
 
-    * This code is a template for analyzing a package from a given URL, performing static analysis, it will be transformed to OOP to fit with the project later
-    * This script analyzes a package from a given URL, performs static analysis,
-    * and logs the results to a specified log file.
-    * The analysis includes:
-    *  - Cloning or downloading the package
-    * - Running ESLint for linting
-    * - Running TypeScript type checking
-    * - Running npm audit for security vulnerabilities
-    * - Calculating a final correctness score based on the results of the analysis
+// Create __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-*/
+//Move up two directories from the built .js file to reach the root of the repository
+const rootDir = path.join(__dirname, '../../');
 
 // Create a log stream for all output except the final score
-let logStream: fs.WriteStream;
+let logStream: fs.WriteStream | null = null;
 
 // Function to log output to the log file
 function logOutput(output: string) {
-    logStream.write(output + '\n');
+    if (logStream) {
+        logStream.write(output + '\n');
+    }
 }
 
 // Clone or download the package, perform static analysis, and clean up afterward
-async function analyzePackage(url: string, logFilePath: string): Promise<number> {
+async function analyzePackage(url: string): Promise<number> {
+    // Create the log file next to the current code file
+    const logFilePath = path.join(rootDir, 'analysis.log');
     logStream = fs.createWriteStream(logFilePath, { flags: 'a' });  // Open the log file
 
     const packageDir = await createTemporaryDirectory();
@@ -51,11 +50,37 @@ async function analyzePackage(url: string, logFilePath: string): Promise<number>
         const totalScore = (lintScore + typeCheckScore + auditScore) / 3;
 
         return totalScore;
+    } catch (error: unknown) {  // Catch the error as type unknown
+        if (error instanceof Error) {
+            logOutput(`Error: ${error.message}`);
+        } else {
+            logOutput(`Unknown error: ${String(error)}`);
+        }
+        throw error;  // Re-throw the error after handling/logging it
     } finally {
         // Step 4: Clean up temporary directory and close the log
         await deleteDirectory(packageDir);
-        logStream.close();
+        if (logStream) {
+            logStream.end();
+        }
     }
+}
+
+
+// Function to clone GitHub repo with retries
+async function cloneRepo(repoUrl: string, directory: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        logOutput(`Cloning repo: ${repoUrl}`);
+        exec(`git clone ${repoUrl} ${directory}`, (error, stdout, stderr) => {
+            if (error) {
+                logOutput(`Failed to clone repository. Error: ${error.message}`);
+                reject(new Error(`Failed to clone repository: ${repoUrl}`));
+            } else {
+                logOutput(`Successfully cloned repository: ${repoUrl}`);
+                resolve();
+            }
+        });
+    });
 }
 
 // Example functions for running different tools with scaling and severity weightings
@@ -149,17 +174,6 @@ async function downloadNpmPackage(url: string, directory: string): Promise<void>
     });
 }
 
-// Simulate cloning a GitHub repository
-async function cloneRepo(repoUrl: string, directory: string): Promise<void> {
-    exec(`git clone ${repoUrl} ${directory}`, (error, stdout, stderr) => {
-        if (error) {
-            logOutput('Failed to clone repository.');
-            throw new Error('Failed to clone repository');
-        }
-        logOutput(`Cloned GitHub repository: ${repoUrl}`);
-    });
-}
-
 function extractPackageNameFromNpmUrl(url: string): string {
     // Parse the URL to get the package name
     return url.split('/').pop() || '';
@@ -191,6 +205,6 @@ async function deleteDirectory(directory: string): Promise<void> {
 }
 
 // Example usage
-analyzePackage('https://github.com/user/repo', '/path/to/log/file.log')
+analyzePackage('https://github.com/nullivex/nodist')
     .then(score => console.log(`Final correctness score: ${score}`))
     .catch(error => console.error(`Error: ${error.message}`));
