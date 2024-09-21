@@ -1,210 +1,280 @@
-import { exec } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { fileURLToPath } from 'url';
+// Correctness.ts
 
-// Create __dirname equivalent for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import axios from 'axios';
+import GitHubApiCalls from '../API/GitHubApiCalls.js';
+import NpmApiCalls from '../API/NpmApiCalls.js';
+import ApiCalls from '../API/api.js';
 
-//Move up two directories from the built .js file to reach the root of the repository
-const rootDir = path.join(__dirname, '../../');
+export class Correctness {
+    private apiCall: GitHubApiCalls | NpmApiCalls;
+    private weights: { [key: string]: number } = {
+        testPresence: 0.25,
+        openIssueRatio: 0.20,
+        recencyScore: 0.20,
+        ciPresence: 0.15,
+        documentationPresence: 0.10,
+        lintersPresence: 0.10,
+    };
+    private githubToken: string | undefined;
 
-// Create a log stream for all output except the final score
-let logStream: fs.WriteStream | null = null;
-
-// Function to log output to the log file
-function logOutput(output: string) {
-    if (logStream) {
-        logStream.write(output + '\n');
+    constructor(apiCall: GitHubApiCalls | NpmApiCalls, githubToken?: string) {
+        this.apiCall = apiCall;
+        this.githubToken = githubToken;
     }
-}
 
-// Clone or download the package, perform static analysis, and clean up afterward
-async function analyzePackage(url: string): Promise<number> {
-    // Create the log file next to the current code file
-    const logFilePath = path.join(rootDir, 'analysis.log');
-    logStream = fs.createWriteStream(logFilePath, { flags: 'a' });  // Open the log file
+    public async computeCorrectness(): Promise<number> {
+        const factors: { [key: string]: number } = {};
+        factors['testPresence'] = await this.testPresence();
+        factors['openIssueRatio'] = 1 - (await this.openIssueRatio());
+        factors['recencyScore'] = await this.recencyScore();
+        factors['ciPresence'] = await this.ciPresence();
+        factors['documentationPresence'] = await this.documentationPresence();
+        factors['lintersPresence'] = await this.lintersPresence();
 
-    const packageDir = await createTemporaryDirectory();
-
-    try {
-        // Step 1: Clone or download package
-        logOutput(`Analyzing package from URL: ${url}`);
-        if (url.includes('github.com')) {
-            await cloneRepo(url, packageDir);
-        } else if (url.includes('npmjs.com')) {
-            await downloadNpmPackage(url, packageDir);
-        } else {
-            throw new Error('Invalid URL');
+        let correctnessScore = 0;
+        for (const key in factors) {
+            correctnessScore += this.weights[key] * factors[key];
         }
 
-        // Step 2: Run static analysis (eslint, tsc, npm audit)
-        const sizeFactor = await calculateCodebaseSize(packageDir);
-        const lintScore = await runLint(packageDir, sizeFactor);
-        const typeCheckScore = await runTypeCheck(packageDir, sizeFactor);
-        const auditScore = await runAudit(packageDir, sizeFactor);
+        return correctnessScore;
+    }
 
-        // Step 3: Calculate correctness score
-        const totalScore = (lintScore + typeCheckScore + auditScore) / 3;
+    private isGithubApiCall(): boolean {
+        return this.apiCall instanceof GitHubApiCalls;
+    }
 
-        return totalScore;
-    } catch (error: unknown) {  // Catch the error as type unknown
-        if (error instanceof Error) {
-            logOutput(`Error: ${error.message}`);
-        } else {
-            logOutput(`Unknown error: ${String(error)}`);
+    private isNpmApiCall(): boolean {
+        return this.apiCall instanceof NpmApiCalls;
+    }
+
+    // Function to get headers for GitHub API requests
+    private getGithubHeaders(): { [key: string]: string } {
+        const headers: { [key: string]: string } = {
+            Accept: 'application/vnd.github.v3+json',
+        };
+        if (this.githubToken) {
+            headers['Authorization'] = `token ${this.githubToken}`;
         }
-        throw error;  // Re-throw the error after handling/logging it
-    } finally {
-        // Step 4: Clean up temporary directory and close the log
-        await deleteDirectory(packageDir);
-        if (logStream) {
-            logStream.end();
+        return headers;
+    }
+
+    private async testPresence(): Promise<number> {
+        if (this.isNpmApiCall()) {
+            const packageJson = await this.getNpmPackageJson();
+            const hasTestScript = packageJson?.scripts && packageJson.scripts['test'];
+            return hasTestScript ? 1.0 : 0.0;
+        } else if (this.isGithubApiCall()) {
+            const hasTestDirectory =
+                (await this.hasGithubDirectory('test')) || (await this.hasGithubDirectory('tests'));
+            return hasTestDirectory ? 1.0 : 0.0;
+        } else {
+            return 0.0;
         }
     }
-}
 
+    private async openIssueRatio(): Promise<number> {
+        if (this.isGithubApiCall()) {
+            const owner = this.apiCall.owner;
+            const repo = this.apiCall.repo;
 
-// Function to clone GitHub repo with retries
-async function cloneRepo(repoUrl: string, directory: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        logOutput(`Cloning repo: ${repoUrl}`);
-        exec(`git clone ${repoUrl} ${directory}`, (error, stdout, stderr) => {
-            if (error) {
-                logOutput(`Failed to clone repository. Error: ${error.message}`);
-                reject(new Error(`Failed to clone repository: ${repoUrl}`));
-            } else {
-                logOutput(`Successfully cloned repository: ${repoUrl}`);
-                resolve();
+            const openIssuesCount = await this.getGithubOpenIssuesCount(owner, repo);
+            const closedIssuesCount = await this.getGithubClosedIssuesCount(owner, repo);
+            const totalIssues = openIssuesCount + closedIssuesCount;
+            if (totalIssues === 0) {
+                return 0.0;
             }
-        });
-    });
-}
-
-// Example functions for running different tools with scaling and severity weightings
-async function runLint(directory: string, sizeFactor: number): Promise<number> {
-    return new Promise((resolve) => {
-        exec(`eslint ${directory} --format json`, (error, stdout, stderr) => {
-            if (error || stderr) {
-                logOutput('ESLint encountered an error.');
-                return resolve(0);
-            }
-            const report = JSON.parse(stdout);
-            let totalSeverity = 0;
-            report.forEach((file: any) => {
-                file.messages.forEach((message: any) => {
-                    const severityWeight = message.severity === 2 ? 1.5 : 1; // Error is more severe than a warning
-                    totalSeverity += severityWeight;
-                });
-            });
-
-            // Normalize the score, scaled with the codebase size
-            const score = Math.max(0, 1 - totalSeverity / (100 * sizeFactor)); // Example scaling factor
-            logOutput(`ESLint score: ${score}`);
-            resolve(score);
-        });
-    });
-}
-
-async function runTypeCheck(directory: string, sizeFactor: number): Promise<number> {
-    return new Promise((resolve) => {
-        exec(`tsc --noEmit`, { cwd: directory }, (error, stdout, stderr) => {
-            if (error || stderr) {
-                logOutput('TypeScript type checking found issues.');
-                return resolve(0.8 * sizeFactor); // Example weight for type-checking issues
-            }
-            logOutput('TypeScript type checking passed.');
-            resolve(1); // No type errors found
-        });
-    });
-}
-
-async function runAudit(directory: string, sizeFactor: number): Promise<number> {
-    return new Promise((resolve) => {
-        exec(`npm audit --json`, { cwd: directory }, (error, stdout, stderr) => {
-            if (error || stderr) {
-                logOutput('npm audit encountered an error.');
-                return resolve(0); // Security vulnerabilities found
-            }
-            const report = JSON.parse(stdout);
-            const vulnerabilities = report.metadata.vulnerabilities;
-            const totalVulnerabilities = (vulnerabilities.low * 0.5) +
-                                         (vulnerabilities.moderate * 1) +
-                                         (vulnerabilities.high * 1.5) +
-                                         (vulnerabilities.critical * 2);
-
-            // Normalize the score, scaled with the codebase size
-            const score = Math.max(0, 1 - totalVulnerabilities / (50 * sizeFactor)); // Example scaling factor
-            logOutput(`npm audit score: ${score}`);
-            resolve(score);
-        });
-    });
-}
-
-// Calculate the size of the codebase by counting lines of code and files
-async function calculateCodebaseSize(directory: string): Promise<number> {
-    return new Promise((resolve) => {
-        exec(`find ${directory} -name '*.ts' -o -name '*.js' | xargs wc -l`, (error, stdout, stderr) => {
-            if (error || stderr) {
-                logOutput('Failed to calculate codebase size.');
-                return resolve(1); // Default size factor in case of error
-            }
-            const totalLines = stdout.split('\n')
-                .map(line => line.trim().split(' ')[0])
-                .reduce((acc, lineCount) => acc + (parseInt(lineCount) || 0), 0);
-
-            const sizeFactor = Math.log10(totalLines || 1); // Logarithmic scaling
-            logOutput(`Codebase size factor: ${sizeFactor}`);
-            resolve(sizeFactor);
-        });
-    });
-}
-
-// Simulate downloading an npm package
-async function downloadNpmPackage(url: string, directory: string): Promise<void> {
-    const packageName = extractPackageNameFromNpmUrl(url);
-    exec(`npm pack ${packageName}`, (error, stdout, stderr) => {
-        if (error) {
-            logOutput('Failed to download npm package.');
-            throw new Error('Failed to download npm package');
+            return openIssuesCount / totalIssues;
+        } else {
+            return 0.0;
         }
-        logOutput(`Downloaded npm package: ${packageName}`);
-    });
-}
+    }
 
-function extractPackageNameFromNpmUrl(url: string): string {
-    // Parse the URL to get the package name
-    return url.split('/').pop() || '';
-}
+    private async recencyScore(): Promise<number> {
+        let lastCommitDate: Date | null = null;
 
-// Create a temporary directory for downloading/cloning the package
-async function createTemporaryDirectory(): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const tempDir = path.join(os.tmpdir(), `package-analysis-${Date.now()}`);
-        fs.mkdir(tempDir, (err) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(tempDir);
-        });
-    });
-}
+        if (this.isGithubApiCall()) {
+            const owner = this.apiCall.owner;
+            const repo = this.apiCall.repo;
+            lastCommitDate = await this.getGithubLastCommitDate(owner, repo);
+        } else if (this.isNpmApiCall()) {
+            lastCommitDate = await this.getNpmLastPublishDate();
+        } else {
+            return 0.0;
+        }
 
-// Delete the temporary directory after analysis
-async function deleteDirectory(directory: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        fs.rm(directory, { recursive: true, force: true }, (err) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve();
-        });
-    });
-}
+        if (!lastCommitDate) {
+            return 0.0;
+        }
 
-// Example usage
-analyzePackage('https://github.com/nullivex/nodist')
-    .then(score => console.log(`Final correctness score: ${score}`))
-    .catch(error => console.error(`Error: ${error.message}`));
+        const currentDate = new Date();
+        const diffTime = Math.abs(currentDate.getTime() - lastCommitDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Assuming packages updated within the last year (365 days) are recent
+        const recencyScore = Math.max(0, (365 - diffDays) / 365);
+        return recencyScore;
+    }
+
+    private async ciPresence(): Promise<number> {
+        if (this.isGithubApiCall()) {
+            const ciFiles = ['.travis.yml', '.circleci/config.yml', 'Jenkinsfile'];
+            const ciDirectories = ['.github/workflows'];
+            const ciPromises = ciFiles.map(file => this.hasGithubFile(file));
+            const dirPromises = ciDirectories.map(dir => this.hasGithubDirectory(dir));
+
+            const ciFilesExist = await Promise.all(ciPromises);
+            const ciDirsExist = await Promise.all(dirPromises);
+
+            const hasCi = ciFilesExist.includes(true) || ciDirsExist.includes(true);
+            return hasCi ? 1.0 : 0.0;
+        } else {
+            return 0.0;
+        }
+    }
+
+    private async documentationPresence(): Promise<number> {
+        if (this.isGithubApiCall()) {
+            const hasReadme =
+                (await this.hasGithubFile('README.md')) || (await this.hasGithubFile('README'));
+            return hasReadme ? 1.0 : 0.0;
+        } else if (this.isNpmApiCall()) {
+            const readme = await this.getNpmReadme();
+            return readme ? 1.0 : 0.0;
+        } else {
+            return 0.0;
+        }
+    }
+
+    private async lintersPresence(): Promise<number> {
+        if (this.isGithubApiCall()) {
+            const linterFiles = ['.eslintrc', '.eslintrc.js', '.eslint.json', '.tslint.json'];
+            const linterPromises = linterFiles.map(file => this.hasGithubFile(file));
+            const linterFilesExist = await Promise.all(linterPromises);
+            const hasLinter = linterFilesExist.includes(true);
+            return hasLinter ? 1.0 : 0.0;
+        } else if (this.isNpmApiCall()) {
+            const packageJson = await this.getNpmPackageJson();
+            const devDependencies = packageJson?.devDependencies || {};
+            const hasLinterPackage = devDependencies['eslint'] || devDependencies['tslint'];
+            return hasLinterPackage ? 1.0 : 0.0;
+        } else {
+            return 0.0;
+        }
+    }
+
+    // Helper functions for GitHub
+
+    private async getGithubOpenIssuesCount(owner: string, repo: string): Promise<number> {
+        try {
+            const response = await axios.get(
+                `https://api.github.com/repos/${owner}/${repo}`,
+                { headers: this.getGithubHeaders() }
+            );
+            return response.data.open_issues_count || 0;
+        } catch (error) {
+            console.error('Error fetching open issues count:', error);
+            return 0;
+        }
+    }
+
+    private async getGithubClosedIssuesCount(owner: string, repo: string): Promise<number> {
+        try {
+            const response = await axios.get(
+                `https://api.github.com/search/issues?q=repo:${owner}/${repo}+type:issue+state:closed`,
+                { headers: this.getGithubHeaders() }
+            );
+            return response.data.total_count || 0;
+        } catch (error) {
+            console.error('Error fetching closed issues count:', error);
+            return 0;
+        }
+    }
+
+    private async getGithubLastCommitDate(owner: string, repo: string): Promise<Date | null> {
+        try {
+            const response = await axios.get(
+                `https://api.github.com/repos/${owner}/${repo}/commits`,
+                { headers: this.getGithubHeaders() }
+            );
+            const lastCommitDate = response.data[0]?.commit?.committer?.date;
+            return lastCommitDate ? new Date(lastCommitDate) : null;
+        } catch (error) {
+            console.error('Error fetching last commit date:', error);
+            return null;
+        }
+    }
+
+    private async hasGithubFile(path: string): Promise<boolean> {
+        const owner = this.apiCall.owner;
+        const repo = this.apiCall.repo;
+        try {
+            await axios.get(
+                `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+                { headers: this.getGithubHeaders() }
+            );
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    private async hasGithubDirectory(path: string): Promise<boolean> {
+        // In GitHub API, files and directories are both 'contents'
+        return this.hasGithubFile(path);
+    }
+
+    // Helper functions for NPM
+
+    private async getNpmPackageJson(): Promise<any> {
+        const packageName = this.apiCall.repo; // Assuming 'repo' contains the package name
+        if (!packageName) return null;
+        try {
+            const response = await axios.get(`https://registry.npmjs.org/${packageName}`);
+            const latestVersion = response.data['dist-tags'].latest;
+            return response.data.versions[latestVersion];
+        } catch (error) {
+            console.error('Error fetching package.json:', error);
+            return null;
+        }
+    }
+
+    private async getNpmLastPublishDate(): Promise<Date | null> {
+        const packageName = this.apiCall.repo; // Assuming 'repo' contains the package name
+        if (!packageName) return null;
+        try {
+            const response = await axios.get(`https://registry.npmjs.org/${packageName}`);
+            const time = response.data.time;
+            const latestVersion = response.data['dist-tags'].latest;
+            const lastPublishDate = time[latestVersion];
+            return lastPublishDate ? new Date(lastPublishDate) : null;
+        } catch (error) {
+            console.error('Error fetching last publish date:', error);
+            return null;
+        }
+    }
+
+    private async getNpmReadme(): Promise<string | null> {
+        const packageName = this.apiCall.repo; // Assuming 'repo' contains the package name
+        if (!packageName) return null;
+        try {
+            const response = await axios.get(`https://registry.npmjs.org/${packageName}`);
+            const readme = response.data.readme;
+            return readme || null;
+        } catch (error) {
+            console.error('Error fetching README:', error);
+            return null;
+        }
+    }
+};
+
+(async () => {
+    const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
+    const gitHubApiObj = await apiInstance.callAPI();
+    let correctnessCalculator: Correctness;
+    let score: number;
+    if (gitHubApiObj instanceof GitHubApiCalls) {
+        correctnessCalculator = new Correctness(gitHubApiObj, "token here");
+        score = await correctnessCalculator.computeCorrectness();
+        console.log(score);
+    }
+})();
