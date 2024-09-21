@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ -f "$1" ]]; then
+  echo "Debugging!!!!!"
+  tsc
+  node --inspect-brk=9229 build/cliClass.js "$1"
+else
+  echo "File not found: $1"
+fi
