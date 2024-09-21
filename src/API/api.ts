@@ -11,7 +11,7 @@ export default class ApiCalls {
         this.callReturnCode = 0
     }
 
-    async callAPI(): Promise<number | void> {
+    async callAPI(): Promise<number | void |GitHubApiCalls |NpmApiCalls> {
         if (!this.checkErrors()) {
             console.log('No URL provided')
             return
@@ -26,10 +26,14 @@ export default class ApiCalls {
 
             if (type === 'github') {
                 const githubApi = new GitHubApiCalls(url, owner, repo)
-                await githubApi.callAPI()
+                if (await githubApi.callAPI() == 200) {
+                    return githubApi;
+                }
             } else if (type === 'npm') {
                 const npmApi = new NpmApiCalls(url, owner, repo)
-                await npmApi.callAPI()
+                if (await npmApi.callAPI() == 200) {
+                    return npmApi;
+                }
             }
         }
 

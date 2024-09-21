@@ -12,7 +12,7 @@ export default class GitHubApiCalls extends ApiCalls {
         })
     }
 
-    async handleAPI() {
+    /* async handleAPI() {
         console.log(`Making API call to GitHub: ${this.owner}/${this.repo}`)
         const reponse = await this.octokit
             .request('GET /repos/{owner}/{repo}', {
@@ -26,5 +26,5 @@ export default class GitHubApiCalls extends ApiCalls {
             name: reponse.name,
             license: licenseNo,
         })
-    }
+    } */
 }
