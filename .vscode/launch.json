@@ -16,7 +16,7 @@
       "name": "Debug Correctness",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/build/Metrics/correctness.js",
+      "program": "${workspaceFolder}/build/Metrics/RampUp.js",
       "preLaunchTask": "tsc: build",
       "args": [],
       "cwd": "${workspaceFolder}",

@@ -7,12 +7,6 @@ export default class NpmApiCalls extends ApiCalls {
         const res = await fetch(`https://registry.npmjs.org/${this.repo}`).then(
             (response) => response.json()
         )
-        console.log({
-            readme : res.readme ? 1:0,
-            keys: Object.keys(res.versions).length,
-            mainters: res.maintainers.length
-
-        })
 
         return res
     }

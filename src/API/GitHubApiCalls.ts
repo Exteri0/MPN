@@ -56,6 +56,6 @@ export default class GitHubApiCalls extends ApiCalls {
             })
             .then((response: any) => response.data)
 
-        return response.data;
+        return response;
     }
 }
