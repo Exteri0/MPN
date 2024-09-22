@@ -19,3 +19,17 @@ export function differenceInHours(date1: string, date2: string): number {
     const diffInMs = Math.abs(d2.getTime() - d1.getTime())
     return diffInMs / (1000 * 60 * 60)
 }
+
+export async function extractInfoFromSSH(sshUrl: string): Promise<{
+    owner: string
+    repo: string
+}> {
+    const regex = /^git\+ssh:\/\/git@github\.com\/(.+?)\/(.+?)\.git$/ // Adjusted to match 'git+ssh' format
+    const match = sshUrl.match(regex)
+    if (match && match.length === 3) {
+        return { owner: match[1], repo: match[2] }
+    } else {
+        console.error('Invalid SSH URL format:', sshUrl)
+        return { owner: '', repo: '' }
+    }
+}
