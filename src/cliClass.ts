@@ -9,6 +9,9 @@ import { RampUpTime } from './Metrics/RampUp.js';
 import { Responsiveness } from './Metrics/responsiveness.js';
 import { measureExecutionTime } from './utils.js';
 
+const LicenseScore = 1; // Placeholder value
+const LicenseTime = 0.001; // Placeholder latency
+
 interface MetricResult {
   URL: string;
   NetScore: number;
@@ -21,8 +24,8 @@ interface MetricResult {
   BusFactor_Latency: number;
   ResponsiveMaintainer: number;
   ResponsiveMaintainer_Latency: number;
-  //License: number;
-  //License_Latency: number;
+  License: number;
+  License_Latency: number;
 }
 
 export default class CLI {
@@ -81,25 +84,27 @@ export default class CLI {
   for (const api of listOfApis) {
     try {
       // Instantiate metric calculators
-      const correctnessCalculator = new Correctness(api);
-      const busFactorCalculator = new BusFactor(api);
-      const rampUpCalculator = new RampUpTime(api);
-      const responsivenessCalculator = new Responsiveness(api);
+        const correctnessCalculator = new Correctness(api);
+        const busFactorCalculator = new BusFactor(api);
+        const rampUpCalculator = new RampUpTime(api);
+        const responsivenessCalculator = new Responsiveness(api);
       //const licenseCalculator = new License(api);
-
+        const licenseCalculator = {
+        computeLicense: async () => 1, // Placeholder function
+        };
       // Measure execution time of each metric calculation
       const [
         resCorrectness,
         resBusFactor,
         resRampUp,
         resResponsiveness,
-        //resLicense,
+        resLicense,
       ] = await Promise.all([
         measureExecutionTime(() => correctnessCalculator.computeCorrectness()),
         measureExecutionTime(() => busFactorCalculator.calcBusFactor(api.owner, api.repo)),
         measureExecutionTime(() => rampUpCalculator.computeRampUpTime()),
         measureExecutionTime(() => responsivenessCalculator.ComputeResponsiveness()),
-        //measureExecutionTime(() => licenseCalculator.computeLicense()),
+        measureExecutionTime(() => licenseCalculator.computeLicense()),
       ]);
 
       // Get scores and times
@@ -107,27 +112,29 @@ export default class CLI {
       const BusFactorScore = resBusFactor.result || 0;
       const RampUpScore = resRampUp.result || 0;
       const ResponsivenessScore = resResponsiveness.result || 0;
-      //const LicenseScore = resLicense.result || 0;
+      const LicenseScore = resLicense.result || 0;
 
       const CorrectnessTime = resCorrectness.time || 0;
       const BusFactorTime = resBusFactor.time || 0;
       const RampUpTimeVal = resRampUp.time || 0;
       const ResponsivenessTime = resResponsiveness.time || 0;
-      //const LicenseTime = resLicense.time || 0;
+      const LicenseTime = resLicense.time || 0;
 
       // Calculate NetScore
       const NetScore =
         (CorrectnessScore +
           BusFactorScore +
           RampUpScore +
-          ResponsivenessScore) /
-        4;
+          ResponsivenessScore +
+          LicenseScore) /
+        5;
 
       const NetScore_Latency = parseFloat(
         (CorrectnessTime +
           BusFactorTime +
           RampUpTimeVal +
-          ResponsivenessTime).toFixed(3)
+          ResponsivenessTime +
+          LicenseTime).toFixed(3)
       );
 
       // Collect results
@@ -143,8 +150,8 @@ export default class CLI {
         BusFactor_Latency: parseFloat(BusFactorTime.toFixed(3)),
         ResponsiveMaintainer: parseFloat(ResponsivenessScore.toFixed(2)),
         ResponsiveMaintainer_Latency: parseFloat(ResponsivenessTime.toFixed(3)),
-        //License: parseFloat(LicenseScore.toFixed(2)),
-        //License_Latency: parseFloat(LicenseTime.toFixed(3)),
+        License: parseFloat(LicenseScore.toFixed(2)),
+        License_Latency: parseFloat(LicenseTime.toFixed(3)),
       };
 
       results.push(result);
@@ -159,5 +166,6 @@ export default class CLI {
   // Output results
   for (const result of results) {
     console.log(JSON.stringify(result));
-  }
+    }
+    process.exit(0);
 })();
