@@ -52,17 +52,17 @@ export class RampUpTime extends Metrics{
 
         } else if (this.apiCall instanceof NpmApiCalls) { // We use optional chaining because we are trying to find length of arrays which could throw an error
             logger.verbose('Processing NPM API response');
-
+                
             const normalizedVersions = await this.normalizeLog(Object.keys(response.versions).length, 500);
             const normalizedMaintainers = await this.normalizeLog((response.maintainers?.length ?? 0), 10);
             const normalizedDependencies = 1 - (await this.normalizeLog((response.dependencies?.length ?? 0), 20));
             
             const githubRepositoryScore = (typeof response.repository === 'object' && response.repository?.url?.includes("github")) ? 1 : 0;
             
-            const weightVersions = 0.15;
+            const weightVersions = 0.2;
             const weightMaintainers = 0.3;
             const weightDependencies = 0.25;
-            const weightGithubRepository = 0.30;
+            const weightGithubRepository = 0.25;
             
             rampUpScore = (normalizedVersions * weightVersions) + (normalizedMaintainers * weightMaintainers) +
                             (normalizedDependencies * weightDependencies) + (githubRepositoryScore * weightGithubRepository);
@@ -106,7 +106,7 @@ export class RampUpTime extends Metrics{
 
 (async () => {
     logger.info('Starting local debug call');
-    const apiInstance = new ApiCalls(["https://www.npmjs.com/package/express"]);
+    const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
     const gitHubApiObj = await apiInstance.callAPI();
     if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
         let correctnessCalculator = new RampUpTime(gitHubApiObj);
