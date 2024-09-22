@@ -1,4 +1,4 @@
-import { extractInfo } from './utils.js'
+import { extractInfo } from '../utils.js'
 
 export default abstract class ApiCalls {
     url: string
