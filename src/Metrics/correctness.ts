@@ -4,7 +4,7 @@ import axios from 'axios';
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
-import Metrics from './Metrics.js';
+import {Metrics} from './Metrics.js';
 
 export class Correctness extends Metrics {
     private weights: { [key: string]: number } = {
@@ -262,11 +262,11 @@ export class Correctness extends Metrics {
 };
 
 (async () => {
-    const apiInstance = new ApiCalls(["https://www.npmjs.com/package/express"]);
+    const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
     const gitHubApiObj = await apiInstance.callAPI();
     if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
-        let correctnessCalculator = new Metrics(gitHubApiObj);
-        let score = await correctnessCalculator.calculateCorrectness();
+        let correctnessCalculator = new Correctness(gitHubApiObj);
+        let score = await correctnessCalculator.computeCorrectness();
         console.log('Correctness score:', score);
     }
 
