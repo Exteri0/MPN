@@ -1,10 +1,9 @@
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
-import Metrics from './Metrics.js';
+import { Metrics } from './Metrics.js';
 
 export class RampUpTime extends Metrics{
-
     public async computeRampUpTime(): Promise<number> {
         const response = await this.apiCall.handleAPI()
 
@@ -101,15 +100,13 @@ export class RampUpTime extends Metrics{
     }
 }
 
-;(async () => {
-    const apiInstance = new ApiCalls(['https://www.npmjs.com/package/express'])
-    const APIObj = await apiInstance.callAPI()
-    let score = -1
-
-    if (APIObj instanceof NpmApiCalls || APIObj instanceof GitHubApiCalls) {
-        let rampUpCalculator = new RampUpTime(APIObj)
-        const score = await rampUpCalculator.computeRampUpTime()
+(async () => {
+    const apiInstance = new ApiCalls(["https://www.npmjs.com/package/express"]);
+    const gitHubApiObj = await apiInstance.callAPI();
+    if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
+        let correctnessCalculator = new RampUpTime(gitHubApiObj);
+        let score = await correctnessCalculator.computeRampUpTime();
+        console.log('Correctness score:', score);
     }
 
-    console.log('Ramp-up time score:', score)
-})()
+})();
