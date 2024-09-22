@@ -46,7 +46,7 @@ export default abstract class ApiCalls {
             logger.error('Error occurred during API call');
             return;
         }
-        await this.handleAPI();
+        //await this.handleAPI();
         return this.callReturnCode;
     }
 }

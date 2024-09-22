@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import BusFactor from '../src/Metrics/busFactor.js';  
-import GitHubApiCalls from '../src/API/GitHubApiCalls.js';
-import NpmApiCalls from '../src/API/NpmApiCalls.js';
+import BusFactor from '/home/shay/a/manjuna0/461/MPNFork/src/Metrics/busFactor.js';  
+import GitHubApiCalls from '../API/GitHubApiCalls.js';
+import NpmApiCalls from '../API/NpmApiCalls.js';
+import logger from '../logger';
 
 // mock the GitHubApiCalls class
 vi.mock('/home/shay/a/manjuna0/461/MPNFork/src/API/GitHubApiCalls.js', () => {
@@ -20,6 +21,16 @@ vi.mock('/home/shay/a/manjuna0/461/MPNFork/src/API/NpmApiCalls.js', () => {
         }))
     };
 });
+
+vi.mock('../logger', () => {
+    return {
+        default: {
+            info: vi.fn(),
+            error: vi.fn(),
+        },
+    };
+});
+
 
 describe('BusFactor Class with GitHub API Calls', () => {
     let githubApiCalls: GitHubApiCalls;
@@ -94,11 +105,11 @@ describe('BusFactor Class with GitHub API Calls', () => {
     it('should handle errors in calcBusFactor for GitHub', async () => {
         githubApiCalls.fetchContributors = vi.fn().mockRejectedValue(new Error('API Error'));
 
-        const consoleErrorSpy = vi.spyOn(console, 'error');
+        const loggerErrorSpy = vi.spyOn(logger, 'error');
 
         await busFactor.calcBusFactor('owner', 'repo');
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error while calculating bus factor:', expect.any(Error));
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error while calculating bus factor:', expect.any(Error));
     });
 });
 
@@ -134,10 +145,10 @@ describe('BusFactor Class with NPM API Calls', () => {
     it('should handle errors in calcBusFactor for NPM packages', async () => {
         npmApiCalls.fetchContributors = vi.fn().mockRejectedValue(new Error('API Error'));
 
-        const consoleErrorSpy = vi.spyOn(console, 'error');
+        const loggerErrorSpy = vi.spyOn(logger, 'error');
 
         await busFactor.calcBusFactor('owner', 'npm-package');
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error while calculating bus factor:', expect.any(Error));
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error while calculating bus factor:', expect.any(Error));
     });
 });
