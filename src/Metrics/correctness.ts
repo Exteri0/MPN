@@ -6,6 +6,8 @@ import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
 import { Metrics } from './Metrics.js';
 import logger from '../logger.js'; // Import the logger
+import { measureExecutionTime } from '../utils.js'
+
 
 export class Correctness extends Metrics {
     private metricCode: number;
@@ -315,10 +317,11 @@ export class Correctness extends Metrics {
             return null;
         }
     }
+
 }
 
 // Test code at the end of the file
-(async () => {
+/* (async () => {
     const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
     const gitHubApiObj = await apiInstance.callAPI();
     if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
@@ -328,4 +331,4 @@ export class Correctness extends Metrics {
     } else {
         logger.error('Failed to create API object for correctness calculation.');
     }
-})();
+})(); */

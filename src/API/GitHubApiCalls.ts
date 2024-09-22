@@ -42,7 +42,7 @@ export default class GitHubApiCalls extends ApiCalls {
 
     async fetchReadme(): Promise<string | null> {
         try {
-            console.log(`Fetching README for ${this.owner}/${this.repo}`)
+            logger.info(`Fetching README for ${this.owner}/${this.repo}`)
             const response = await this.octokit.request(
                 'GET /repos/{owner}/{repo}/readme',
                 {
@@ -57,11 +57,11 @@ export default class GitHubApiCalls extends ApiCalls {
                 ).toString('binary')
                 return readmeContent
             } else {
-                console.error('No content found in the README response')
+                logger.error('No content found in the README response')
                 return null
             }
         } catch (error) {
-            console.error(
+            logger.error(
                 `Error fetching README for ${this.owner}/${this.repo}:`,
                 error
             )

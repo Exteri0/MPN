@@ -42,7 +42,7 @@ if [ "$1" == "install" ]; then
   npm install
 
   # Output the number of dependencies installed to stdout
-  echo "$actualCounter dependencies installed successfully" >&3
+  echo "$actualCounter dependencies installed..." >&3
 
 elif [ "$1" == "test" ]; then
   # Redirect all output (stdout and stderr) to LOG_FILE

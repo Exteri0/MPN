@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import BusFactor from '/home/shay/a/manjuna0/461/MPNFork/src/Metrics/busFactor.js';  
-import GitHubApiCalls from '../API/GitHubApiCalls.js';
-import NpmApiCalls from '../API/NpmApiCalls.js';
-import logger from '../logger';
+import BusFactor from '../src/Metrics/busFactor.js';  
+import GitHubApiCalls from '../src/API/GitHubApiCalls.js';
+import NpmApiCalls from '../src/API/NpmApiCalls.js';
+import logger from '../src/logger';
 
 // mock the GitHubApiCalls class
 vi.mock('/home/shay/a/manjuna0/461/MPNFork/src/API/GitHubApiCalls.js', () => {

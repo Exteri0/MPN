@@ -8,8 +8,17 @@ import 'dotenv/config'
 import { extractInfoFromSSH } from '../utils.js'
 import logger from '../logger.js'
 import Metrics from './Metrics.js'
+import { measureExecutionTime } from '../utils.js'
+
 
 export class Responsiveness extends Metrics {
+    private metricCode: number;
+    
+    constructor(apiCall: GitHubApiCalls | NpmApiCalls) {
+        super(apiCall);
+        this.metricCode = 3;
+    }
+
     async ComputeResponsivenessG(): Promise<number> {
         let score = 0
         const allIssues = await (this.apiCall as GitHubApiCalls).fetchIssues()
@@ -116,6 +125,6 @@ export class Responsiveness extends Metrics {
     ) {
         let correctnessCalculator = new Responsiveness(gitHubApiObj)
         let score = await correctnessCalculator.ComputeResponsiveness()
-        console.log('Responsiveness score:', score)
+        logger.info('Responsiveness score:', score)
     }
 })()
