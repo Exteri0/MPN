@@ -84,7 +84,7 @@ export class RampUpTime extends Metrics{
                 const githubUrl = response.repository.url.replace(/^git\+/, '').replace(/\.git$/, '')
                 logger.info(`Fetching GitHub repository details from: ${githubUrl}`);
 
-                console.log(githubUrl)
+                logger.info("NEW URL IS: ", githubUrl)
 
                 const apiInstance = new ApiCalls([githubUrl])
                 const APIObj = await apiInstance.callAPI()
