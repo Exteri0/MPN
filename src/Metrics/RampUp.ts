@@ -1,14 +1,9 @@
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
+import Metrics from './Metrics.js';
 
-export class RampUpTime {
-    private apiCall: GitHubApiCalls | NpmApiCalls;
-
-    constructor(apiCall: GitHubApiCalls | NpmApiCalls) {
-        this.apiCall = apiCall;
-    }
-
+export class RampUpTime extends Metrics{
 
     public async computeRampUpTime(): Promise<number> {
         const response = await this.apiCall.handleAPI();
@@ -71,7 +66,7 @@ export class RampUpTime {
 }
 
 
-(async () => {
+/* (async () => {
     const apiInstance = new ApiCalls(["https://www.npmjs.com/package/express"]); 
     const APIObj = await apiInstance.callAPI();
     let score = -1;
@@ -82,4 +77,4 @@ export class RampUpTime {
     }
     
     console.log('Ramp-up time score:', score);
-})();
+})(); */

@@ -1,4 +1,5 @@
 // Array of licenses compatible with LGPL-2.1
+import Metrics from './Metrics.js';
 const compatibleLicenses: string[] = [
     'Apache-2.0',
     'Artistic-2.0',

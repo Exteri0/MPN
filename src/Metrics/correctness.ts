@@ -4,9 +4,9 @@ import axios from 'axios';
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
+import Metrics from './Metrics.js';
 
-export class Correctness {
-    private apiCall: GitHubApiCalls | NpmApiCalls;
+export class Correctness extends Metrics {
     private weights: { [key: string]: number } = {
         testPresence: 0.25,
         openIssueRatio: 0.20,
@@ -15,12 +15,6 @@ export class Correctness {
         documentationPresence: 0.10,
         lintersPresence: 0.10,
     };
-    private githubToken: string | undefined;
-
-    constructor(apiCall: GitHubApiCalls | NpmApiCalls, githubToken?: string) {
-        this.apiCall = apiCall;
-        this.githubToken = githubToken;
-    }
 
     public async computeCorrectness(): Promise<number> {
         const factors: { [key: string]: number } = {};
@@ -52,8 +46,8 @@ export class Correctness {
         const headers: { [key: string]: string } = {
             Accept: 'application/vnd.github.v3+json',
         };
-        if (this.githubToken) {
-            headers['Authorization'] = `token ${this.githubToken}`;
+        if (this.token) {
+            headers['Authorization'] = `token ${this.token}`;
         }
         return headers;
     }
@@ -268,13 +262,12 @@ export class Correctness {
 };
 
 (async () => {
-    const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
+    const apiInstance = new ApiCalls(["https://www.npmjs.com/package/express"]);
     const gitHubApiObj = await apiInstance.callAPI();
-    let correctnessCalculator: Correctness;
-    let score: number;
-    if (gitHubApiObj instanceof GitHubApiCalls) {
-        correctnessCalculator = new Correctness(gitHubApiObj, "token here");
-        score = await correctnessCalculator.computeCorrectness();
-        console.log(score);
+    if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
+        let correctnessCalculator = new Metrics(gitHubApiObj);
+        let score = await correctnessCalculator.calculateCorrectness();
+        console.log('Correctness score:', score);
     }
+
 })();

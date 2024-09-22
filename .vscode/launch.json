@@ -13,7 +13,7 @@
       "cwd": "${workspaceFolder}"
     },
     {
-      "name": "Debug Correctness",
+      "name": "Debug Rampup",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/build/Metrics/RampUp.js",
@@ -26,6 +26,22 @@
       "internalConsoleOptions": "openOnSessionStart",
       "env": {
         "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "Debug Correctness",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/Metrics/correctness.js",
+      "preLaunchTask": "tsc: build",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "outFiles": ["${workspaceFolder}/build/**/*.js"],
+      "sourceMaps": true,
+      "runtimeArgs": ["--nolazy"],
+      "internalConsoleOptions": "openOnSessionStart",
+      "env": {
+        "NODE_ENV": "development",
       }
     }
   ]
