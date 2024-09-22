@@ -9,6 +9,7 @@ import BusFactor from './Metrics/busFactor.js'
 // import License from './Metrics/license.js'
 import { RampUpTime } from './Metrics/RampUp.js'
 import { Responsiveness } from './Metrics/responsiveness.js'
+import { measureExecutionTime } from './utils.js'
 
 export default class CLI {
     private inputFilePath: string
@@ -73,8 +74,21 @@ let CLIObject = new CLI(argument[0])
     let urls = await CLIObject.getURLList()
     const API = new ApiCalls(urls)
     const listOfApis = await API.getAPIlist()
+    let listOfScore: (string & number)[] = []
     for (let api of listOfApis) {
-        console.log(api)
+        let correctnessCalculator = new Correctness(api)
+        let busFactorCalculator = new BusFactor(api)
+        let rampUpCalculator = new RampUpTime(api)
+        let responsivenessCalculator = new Responsiveness(api)
+        const resCorrectness = await measureExecutionTime(correctnessCalculator.computeCorrectness)
+        const resBusFactor = await measureExecutionTime(busFactorCalculator.calcBusFactor)
+        const resRampUp = await measureExecutionTime(rampUpCalculator.computeRampUpTime)
+        const resResponsiveness = await measureExecutionTime(responsivenessCalculator.ComputeResponsiveness)
+        //const resLicense = await measureExecutionTime(licenseCalculator.computeLicense)
+        //let {correctnessScore: number, time: number} = resCorrectness
+
+
         await api.handleAPI()
     }
+
 })()

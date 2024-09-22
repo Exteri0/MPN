@@ -36,6 +36,19 @@ export async function extractInfoFromSSH(sshUrl: string): Promise<{
     }
 }
 
+export async function measureExecutionTime<T>(func: () => Promise<T>): Promise<{ result: T, time: number }> {
+    try {
+        const startTime = process.hrtime(); // High-resolution time
+        const result = await func();
+        const endTime = process.hrtime(startTime);
+        const timeInSeconds = endTime[0] + endTime[1] / 1e9; // Convert to seconds
+        return { result, time: timeInSeconds };
+    } catch (error) {
+        logger.error('Error measuring execution time:', error);
+        throw {error: -1, time: 0};
+    }
+}
+
 export const compatibleLicenses = [
     'Apache-2.0',
     'Artistic-2.0',

@@ -2,7 +2,7 @@ import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import Metrics from '../Metrics/Metrics.js'
 import logger from '../logger';
-
+import { measureExecutionTime } from '../utils.js'
 
 class BusFactor extends Metrics {
     metricCode: number;
@@ -54,6 +54,7 @@ class BusFactor extends Metrics {
             logger.error('Error while calculating bus factor:', error);
         }
     }
+
 }
 
 export default BusFactor;

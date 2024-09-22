@@ -1,6 +1,8 @@
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
+import { measureExecutionTime } from '../utils.js'
+
 
 export default class Metrics {
     protected apiCall: GitHubApiCalls | NpmApiCalls;
