@@ -262,7 +262,7 @@ export class Correctness extends Metrics {
 };
 
 (async () => {
-    const apiInstance = new ApiCalls(["https://www.npmjs.com/package/express"]);
+    const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
     const gitHubApiObj = await apiInstance.callAPI();
     if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
         let correctnessCalculator = new Correctness(gitHubApiObj);

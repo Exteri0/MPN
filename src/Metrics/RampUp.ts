@@ -94,7 +94,7 @@ export class RampUpTime extends Metrics{
     if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
         let correctnessCalculator = new RampUpTime(gitHubApiObj);
         let score = await correctnessCalculator.computeRampUpTime();
-        console.log('Correctness score:', score);
+        console.log('RampUpTime score:', score);
     }
 
 })();
