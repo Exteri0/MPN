@@ -13,7 +13,7 @@ export default abstract class ApiCalls {
         this.callReturnCode = 0
     }
 
-    // abstract handleAPI(): Promise<any>
+    abstract handleAPI(): Promise<any>
 
     setOwner(owner: string): void {
         this.owner = owner
@@ -44,7 +44,7 @@ export default abstract class ApiCalls {
             console.log('Error occurred during API call')
             return
         }
-        //await this.handleAPI()
+        await this.handleAPI()
         return this.callReturnCode
     }
 }

@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as readline from 'readline'
 import Api from './API/api.js'
 
-class CLI {
+export default class CLI {
     private inputFilePath: string
     private inputURL: string[]
     private cliError: boolean
@@ -57,8 +57,8 @@ if (argument.length != 1) {
     process.exit(1)
 }
 
-let CLIObject = new CLI(argument[0])
-;(async () => {
+let CLIObject = new CLI(argument[0]);
+(async () => {
     CLIObject.printPath()
     await CLIObject.startReadingFile()
     await CLIObject.printURLs()

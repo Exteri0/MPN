@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CLI } from '../cliClass';
+import { CLI } from '../src/cliClass.js';
 import * as fs from 'fs';
 import * as readline from 'readline';
 
