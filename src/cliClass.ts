@@ -5,8 +5,8 @@ import ApiCalls from './API/api.js'
 import logger from './logger.js'
 import { Metrics } from './Metrics/Metrics.js'
 import { Correctness } from './Metrics/correctness.js'
-import  BusFactor from './Metrics/busFactor.js'
-import License from './Metrics/license.js'
+import BusFactor from './Metrics/busFactor.js'
+// import License from './Metrics/license.js'
 import { RampUpTime } from './Metrics/RampUp.js'
 import { Responsiveness } from './Metrics/responsiveness.js'
 
@@ -58,9 +58,6 @@ export default class CLI {
     }
 }
 
-
-
-
 const argument = process.argv.slice(2)
 
 if (argument.length != 1) {
@@ -68,8 +65,8 @@ if (argument.length != 1) {
     process.exit(1)
 }
 
-let CLIObject = new CLI(argument[0]);
-(async () => {
+let CLIObject = new CLI(argument[0])
+;(async () => {
     CLIObject.printPath()
     await CLIObject.startReadingFile()
     await CLIObject.printURLs()

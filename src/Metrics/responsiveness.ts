@@ -6,44 +6,22 @@ import { differenceInHours, extractInfo } from '../utils.js'
 import { Octokit } from 'octokit'
 import 'dotenv/config'
 import { extractInfoFromSSH } from '../utils.js'
+import logger from '../logger.js'
+import Metrics from './Metrics.js'
 
-export class Responsiveness {
-    repo: string
-    owner: string
-    octokit: any
-    constructor(owner: string, repo: string) {
-        this.owner = owner
-        this.repo = repo
-        this.octokit = new Octokit({
-            auth: process.env.GITHUB_TOKEN,
-        })
-    }
-    async ComputerResponsiveness(): Promise<number> {
+export class Responsiveness extends Metrics {
+    async ComputeResponsivenessG(): Promise<number> {
         let score = 0
-        const allIssues = await this.octokit
-            .request('GET /repos/{owner}/{repo}/issues', {
-                owner: this.owner,
-                repo: this.repo,
-                per_page: 100,
-                state: 'closed',
-            })
-            .then((response: any) => response.data)
-        console.log(`owner is ${this.owner} and repo is ${this.repo}`)
+        const allIssues = await (this.apiCall as GitHubApiCalls).fetchIssues()
+        logger.debug(
+            `owner is ${this.apiCall.owner} and repo is ${this.apiCall.repo}`
+        )
         let counter = 0
         for (const issue of allIssues) {
             if (issue.pull_request == null) counter++
-            const issueComments: Array<{ created_at: string }> =
-                await this.octokit
-                    .request(
-                        'GET /repos/{owner}/{repo}/issues/{issue_no}/comments',
-                        {
-                            owner: this.owner,
-                            repo: this.repo,
-                            issue_no: issue.number,
-                            per_page: 1,
-                        }
-                    )
-                    .then((response: any) => response.data)
+            const issueComments: Array<{ created_at: string }> = await (
+                this.apiCall as GitHubApiCalls
+            ).fetchIssueComments(issue.number)
             let diffTime: number
             if (issueComments[0]) {
                 diffTime = differenceInHours(
@@ -66,43 +44,78 @@ export class Responsiveness {
                 diffTime = 1
             }
             score += diffTime
-            console.log(
+            logger.verbose(
                 `avg response time for issue ${issue.number} is ${diffTime}`
             )
             if (counter > 100) break
         }
-        console.log(
+        logger.info(
             `analyzed ${counter} different issues and ${100 - counter} pull requests`
         )
+        return 1 - score / allIssues.length
+    }
+    async ComputeResponsiveness(): Promise<number> {
+        if (this.apiCall instanceof GitHubApiCalls) {
+            return this.ComputeResponsivenessG()
+        } else {
+            return this.ComputeResponsivenessN()
+        }
+    }
+    async ComputeResponsivenessN(): Promise<number> {
+        const response = await this.apiCall.handleAPI()
+        const { owner, repo } = await extractInfoFromSSH(
+            response.repository.url
+        )
+        let gitInstance = new GitHubApiCalls(owner, repo)
+        const allIssues = await gitInstance.fetchIssues()
+        logger.debug(`owner is ${owner} and repo is ${repo}`)
+        let counter = 0
+        let score = 0
+        for (const issue of allIssues) {
+            if (issue.pull_request == null) counter++
+            const issueComments: Array<{ created_at: string }> =
+                await gitInstance.fetchIssueComments(issue.number)
+            let diffTime: number
+            if (issueComments[0]) {
+                diffTime = differenceInHours(
+                    issue.created_at,
+                    issueComments[0].created_at
+                )
+                diffTime = diffTime / (7 * 24)
+                diffTime = Math.min(diffTime, 1)
+            } else if (issue.closed_at) {
+                if (issue.pull_request != null)
+                    diffTime =
+                        differenceInHours(issue.created_at, issue.closed_at) /
+                        (15 * 24)
+                else
+                    diffTime =
+                        differenceInHours(issue.created_at, issue.closed_at) /
+                        (7 * 24)
+                diffTime = Math.min(diffTime, 1)
+            } else {
+                diffTime = 1
+            }
+            score += diffTime
+            logger.verbose(
+                `avg response time for issue ${issue.number} is ${diffTime}`
+            )
+            if (counter > 100) break
+        }
+
         return 1 - score / allIssues.length
     }
 }
 
 ;(async () => {
-    const url = 'https://www.npmjs.com/package/browserify'
-    const apiInstance = new ApiCalls([url]) // Hardcopy remove it
-    const APIObj = await apiInstance.callAPI()
-    let score: number
-    if (APIObj instanceof GitHubApiCalls) {
-        const { type, owner, repo } = await extractInfo(url)
-        let ResponsivenessCalculator = new Responsiveness(owner, repo)
-        // const response = await APIObj.handleAPI()
-
-        const score = await ResponsivenessCalculator.ComputerResponsiveness()
-        console.log(`score for ${repo} is ${score}`)
-        console.log('eysyesayeas')
-    } else if (APIObj instanceof NpmApiCalls) {
-        try {
-            const response = await APIObj.handleAPI()
-            const { owner, repo } = await extractInfoFromSSH(
-                response.repository.url
-            )
-            let ResponsivenessCalculator = new Responsiveness(owner, repo)
-            const score =
-                await ResponsivenessCalculator.ComputerResponsiveness()
-            console.log(`score for ${repo} is ${score}`)
-        } catch (e) {
-            console.log(`pkg not found: ${e}`)
-        }
+    const apiInstance = new ApiCalls(['https://github.com/nullivex/nodist'])
+    const gitHubApiObj = await apiInstance.callAPI()
+    if (
+        gitHubApiObj instanceof NpmApiCalls ||
+        gitHubApiObj instanceof GitHubApiCalls
+    ) {
+        let correctnessCalculator = new Responsiveness(gitHubApiObj)
+        let score = await correctnessCalculator.ComputeResponsiveness()
+        console.log('Responsiveness score:', score)
     }
 })()
