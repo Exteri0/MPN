@@ -3,9 +3,19 @@ import NpmApiCalls from '../API/NpmApiCalls.js';
 import ApiCalls from '../API/api.js';
 import { Metrics } from './Metrics.js';
 import logger from '../logger.js';
+import { measureExecutionTime } from '../utils.js'
 
 
 export class RampUpTime extends Metrics{
+    private metricCode: number;
+    
+    constructor(apiCall: GitHubApiCalls | NpmApiCalls) {
+        super(apiCall);
+        this.metricCode = 2;
+    }
+
+
+
     public async computeRampUpTime(): Promise<number> {
         logger.info('Starting ramp-up time computation')
         const response = await this.apiCall.handleAPI()
@@ -102,6 +112,7 @@ export class RampUpTime extends Metrics{
     ): Promise<number> {
         return Math.log(value + 1) / Math.log(maxValue + 1)
     }
+
 }
 
 (async () => {

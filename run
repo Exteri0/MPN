@@ -1,52 +1,70 @@
 #!/bin/bash
 
+LOG_FILE="myLog.log"
 
-#VARIABLES TRACKING DEPENDENCIES
+# Save original stdout to file descriptor 3
+exec 3>&1
 
-numDepenedenciesInstalledInstalled=0
-dependencyList=('typescript' 'blab341lablabla' 'ts-node')
+# Function to clean the log file
+clean_log() {
+  echo "Cleaning log file..." >&3
+  > "$LOG_FILE"
+  echo "Log file cleaned." >&3
+}
 
-# Check if "install" is passed as the first argument
-if [ "$1" == "install" ]; then #the command after run is install "./run install"
-  # for i in ${dependencyList[@]}; do #loop through the dependency list
-    
-  #   echo "installing $i..." 
-    
-  #   if npm install "$i"; then #check if dependency installation succeeded
-  #     echo "$i installed successfully"
-  #     numDepenedenciesInstalled=$((numDepenedenciesInstalled + 1))
-    
-  #   else
-  #     echo "$i installation failed, skipping" #Failure to install dependency
-  #   fi
-  
-  # done  
-  # echo "$numDepenedenciesInstalled dependencies installed..." #print number of successfull installations 
-  counter=-3
-  actualCounter=0
-  for dep in `npm ls`
-    do
-      ((counter = counter + 1))
-      if (( counter < 0 )); then
-        # echo "skippings $dep"
-        continue
-      fi
-      if (( counter % 2 == 0 )); then
-        # echo "skipping $dep"
-        continue
-      fi
-      ((actualCounter = actualCounter + 1))
-      echo "preparing $dep"
-    done
-  echo "installing $actualCounter dependencies..."
-  npm i
-
-
-elif  [[ -f "$1" ]]; then
-  echo "Found it!!!!!"
-  tsc
-  node build/cliClass.js $1  
-else
-  echo "invalid command"
+# Check if "cleanLog" is passed as the first argument
+if [ "$1" == "cleanLog" ]; then
+  clean_log
+  exit 0
 fi
 
+# Check if "install" is passed as the first argument
+if [ "$1" == "install" ]; then
+  # Redirect all output (stdout and stderr) to LOG_FILE
+  exec >"$LOG_FILE" 2>&1
+
+  # VARIABLES TRACKING DEPENDENCIES
+
+  counter=-3
+  actualCounter=0
+  for dep in $(npm ls); do
+    ((counter = counter + 1))
+    if (( counter < 0 )); then
+      continue
+    fi
+    if (( counter % 2 == 0 )); then
+      continue
+    fi
+    ((actualCounter = actualCounter + 1))
+    echo "preparing $dep"
+  done
+  echo "installing $actualCounter dependencies..."
+  npm install
+
+  # Output the number of dependencies installed to stdout
+  echo "$actualCounter dependencies installed successfully" >&3
+
+elif [ "$1" == "test" ]; then
+  # Redirect all output (stdout and stderr) to LOG_FILE
+  exec >"$LOG_FILE" 2>&1
+
+  # Your test code here
+  echo "Running tests..."
+  # ... (test commands)
+  echo "Tests completed."
+
+  # You can output any summary to stdout if needed
+  # echo "All tests passed." >&3
+
+elif [[ -f "$1" ]]; then
+  # Output to log file whether the path is valid or not
+  echo "File found: $1" >> "$LOG_FILE"
+
+  # Run your application code
+  tsc
+  node build/cliClass.js "$1"
+
+else
+  # Output to log file that the command is invalid or file not found
+  echo "Invalid command or file not found: $1" >> "$LOG_FILE"
+fi
