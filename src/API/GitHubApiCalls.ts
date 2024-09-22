@@ -49,6 +49,33 @@ export default class GitHubApiCalls extends ApiCalls {
             return [];
         }
     }
+
+
+    async fetchReadme(): Promise<string | null> {
+        try {
+            console.log(`Fetching README for ${this.owner}/${this.repo}`);
+            const response = await this.octokit.request(
+                'GET /repos/{owner}/{repo}/readme',
+                {
+                    owner: this.owner,
+                    repo: this.repo,
+                }
+            );
+            if (response.data && response.data.content) {
+                const readmeContent = Buffer.from(response.data.content, 'base64').toString('binary');
+                return readmeContent;
+            } else {
+                console.error('No content found in the README response');
+                return null;
+            }
+        } catch (error) {
+            console.error(`Error fetching README for ${this.owner}/${this.repo}:`, error);
+            return null;
+        }
+    
+    }
+
+
     async handleAPI() {
         console.log(`Making API call to GitHub: ${this.owner}/${this.repo}`)
         const response = await this.octokit
