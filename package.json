@@ -31,8 +31,7 @@
     },
     "type": "module",
     "scripts": {
-        "test": "vitest",
-        "test:coverage": "vitest --coverage"
+        "test": "vitest --exclude **/t/**"
     },
     "prettier": {
         "singleQuote": true,

@@ -10,13 +10,12 @@ import logger from '../logger.js'
 import Metrics from './Metrics.js'
 import { measureExecutionTime } from '../utils.js'
 
-
 export class Responsiveness extends Metrics {
-    private metricCode: number;
-    
+    private metricCode: number
+
     constructor(apiCall: GitHubApiCalls | NpmApiCalls) {
-        super(apiCall);
-        this.metricCode = 3;
+        super(apiCall)
+        this.metricCode = 3
     }
 
     async ComputeResponsivenessG(): Promise<number> {
@@ -123,8 +122,8 @@ export class Responsiveness extends Metrics {
         gitHubApiObj instanceof NpmApiCalls ||
         gitHubApiObj instanceof GitHubApiCalls
     ) {
-        let correctnessCalculator = new Responsiveness(gitHubApiObj)
-        let score = await correctnessCalculator.ComputeResponsiveness()
+        let ResponsivenessCalculator = new Responsiveness(gitHubApiObj)
+        let score = await ResponsivenessCalculator.ComputeResponsiveness()
         logger.info('Responsiveness score:', score)
     }
 })()
