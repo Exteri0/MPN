@@ -101,4 +101,43 @@ describe('RampUpTime Class', () => {
             logger.info("API Failed - Will do");
         }
     });
+
+    it('should compute ramp-up time for NPM package "wat4hjs" correctly', async () => {
+        const apiInstance = new ApiCalls(["https://www.npmjs.com/package/wat4hjs"]);
+        const ApiObj = await apiInstance.callAPI();
+
+        if (ApiObj instanceof NpmApiCalls) {
+            let correctnessCalculator = new RampUpTime(ApiObj);
+            const score = await correctnessCalculator.computeRampUpTime();
+            expect(score).toBeGreaterThan(0.4);
+            expect(score).toBeLessThan(0.6);
+            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Final ramp-up score:'));
+        }
+    });
+
+    it('should compute ramp-up time for GitHub repository "three.js" correctly', async () => {
+        const apiInstance = new ApiCalls(["https://github.com/mrdoob/three.js/"]);
+        const ApiObj = await apiInstance.callAPI();
+
+        if (ApiObj instanceof GitHubApiCalls) {
+            let correctnessCalculator = new RampUpTime(ApiObj);
+            const score = await correctnessCalculator.computeRampUpTime();
+            expect(score).toBeGreaterThan(0.75);
+            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Final ramp-up score:'));
+        }
+    });
+
+    it('should compute ramp-up time for GitHub repository "libvlc" correctly', async () => {
+        const apiInstance = new ApiCalls(["https://github.com/prathameshnetake/libvlc"]);
+        const ApiObj = await apiInstance.callAPI();
+
+        if (ApiObj instanceof GitHubApiCalls) {
+            let correctnessCalculator = new RampUpTime(ApiObj);
+            const score = await correctnessCalculator.computeRampUpTime();
+            expect(score).toBeLessThan(0.3);
+            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Final ramp-up score:'));
+        }
+    });
+
+
 });

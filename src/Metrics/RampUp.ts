@@ -115,6 +115,7 @@ export class RampUpTime extends Metrics{
 
 }
 
+// Just used for debugging
 (async () => {
     
     logger.info('Starting local debug call');
