@@ -189,34 +189,3 @@ export default class License extends Metrics {
         }
     }
 }
-logger.info(
-    "didn't find the license through github api, attempting to clone and analyze it"
-)
-
-// checkLicenseFile(dir, compatibleLicenses).then((isCompatible) => {
-//     if (isCompatible) {
-//         logger.info('The repository has a compatible license.')
-//     } else {
-//         logger.info('The repository does not have a compatible license.')
-//     }
-// })
-
-// checkReadmeFile(dir, compatibleLicenses).then((isCompatible) => {
-//     if (isCompatible) {
-//         logger.info('The repository has a compatible license in README.md.')
-//     } else {
-//         logger.info('The repository does not have a compatible license in README.md.')
-//     }
-// })
-;(async () => {
-    const apiInstance = new ApiCalls(['https://github.com/lodash/lodash'])
-    const gitHubApiObj = await apiInstance.callAPI()
-    if (
-        gitHubApiObj instanceof NpmApiCalls ||
-        gitHubApiObj instanceof GitHubApiCalls
-    ) {
-        let licenseCalculator = new License(gitHubApiObj)
-        let score = await licenseCalculator.isLicenseCompatible()
-        logger.info('license score:', score)
-    }
-})()

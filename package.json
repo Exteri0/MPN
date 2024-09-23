@@ -32,7 +32,7 @@
     },
     "type": "module",
     "scripts": {
-        "test": "vitest"
+        "test": "vitest --exclude **/tmp/**"
     },
     "prettier": {
         "singleQuote": true,
@@ -48,6 +48,7 @@
     "license": "MIT",
     "devDependencies": {
         "@types/base-64": "^1.0.2",
+        "@vitest/coverage-v8": "^2.1.1",
         "tsconfig-paths": "^4.2.0"
     }
 }
