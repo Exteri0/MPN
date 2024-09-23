@@ -1,8 +1,8 @@
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import Metrics from '../Metrics/Metrics.js'
-import logger from '../logger.js';
-import { measureExecutionTime } from '../utils.js'
+import logger from '../logger';
+
 
 class BusFactor extends Metrics {
     metricCode: number;
@@ -12,7 +12,7 @@ class BusFactor extends Metrics {
         this.metricCode = 0;
     }
 
-    async calcBusFactor(owner: string = '', repo: string = ''): Promise<number> { 
+    async calcBusFactor(owner: string = '', repo: string = ''): Promise<void> { 
         try {
             if (this.apiCall instanceof GitHubApiCalls && (!owner || !repo)) {
                 throw new Error('Owner and repo are required for GitHub API calls.');
@@ -24,7 +24,7 @@ class BusFactor extends Metrics {
             if (contributors.length === 0) {
                 logger.info('No contributors found.')
                 this.metricCode = 0;
-                return -1;
+                return;
             }
 
             // sort contributors based on the number of contributions (largest to smallest)
@@ -48,14 +48,12 @@ class BusFactor extends Metrics {
 
             // calculate the Bus Factor percentage
             const busFactorPercentage = 1 - (keyContributors / contributors.length);
-            logger.info(`Bus Factor Calculated: ${busFactorPercentage}%`);
-            return busFactorPercentage;
+            this.metricCode = busFactorPercentage * 100;
+            logger.info(`Bus Factor Calculated: ${this.metricCode}%`);
         } catch (error) {
             logger.error('Error while calculating bus factor:', error);
-            return -1;
         }
     }
-
 }
 
 export default BusFactor;
