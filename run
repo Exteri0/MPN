@@ -21,16 +21,13 @@ fi
 # Check if "install" is passed as the first argument
 if [ "$1" == "install" ]; then
   # Redirect all output (stdout and stderr) to LOG_FILE
-  # Temporarily comment this out for debugging
-  # exec > "$LOG_FILE" 2>&1
+  exec > "$LOG_FILE" 2>&1
 
   # Install dependencies
   echo "Installing dependencies..."
   npm install
 
-  INSTALL_EXIT_CODE=$?
-
-  if [ $INSTALL_EXIT_CODE -eq 0 ]; then
+  if [ $? -eq 0 ]; then
     # Output success message to stdout
     echo "Dependencies installed successfully" >&3
     exit 0
@@ -39,4 +36,57 @@ if [ "$1" == "install" ]; then
     exit 1
   fi
 
-# ... [Rest of the script remains unchanged] ...
+# Check if "test" is passed as the first argument
+elif [ "$1" == "test" ]; then
+  # Redirect all output to LOG_FILE
+  exec > "$LOG_FILE" 2>&1
+  # Run your test suite and generate coverage report
+  echo "Running tests..."
+  npx jest --coverage --coverageReporters=json-summary --json --outputFile=test-results.json
+  TEST_EXIT_STATUS=$?
+  if [ $TEST_EXIT_STATUS -eq 0 ]; then
+    # Parse test results from Jest output
+    TEST_RESULTS_JSON="test-results.json"
+    COVERAGE_SUMMARY_JSON="coverage/coverage-summary.json"
+    if [ -f "$TEST_RESULTS_JSON" ] && [ -f "$COVERAGE_SUMMARY_JSON" ]; then
+      TOTAL_TESTS=$(node -pe "require('./$TEST_RESULTS_JSON').numTotalTests")
+      PASSED_TESTS=$(node -pe "require('./$TEST_RESULTS_JSON').numPassedTests")
+      LINE_COVERAGE=$(node -pe "require('./$COVERAGE_SUMMARY_JSON').total.lines.pct")
+      # Round line coverage to the nearest integer
+      LINE_COVERAGE=${LINE_COVERAGE%.*}
+      # Output test summary to stdout
+      echo "$PASSED_TESTS/$TOTAL_TESTS test cases passed. $LINE_COVERAGE% line coverage achieved." >&3
+      exit 0
+    else
+      echo "Test result files not found." >&3
+      exit 1
+    fi
+  else
+    echo "Test suite failed." >&3
+    exit 1
+  fi
+# Check if a file path is provided
+elif [[ -n "$1" ]]; then
+  INPUT_PATH="$1"
+  if [[ -f "$INPUT_PATH" ]]; then
+    # Log that the file was found
+    echo "File found at path: $INPUT_PATH" >> "$LOG_FILE"
+    # Run your application code
+    npx tsc
+    if [ $? -ne 0 ]; then
+      echo "TypeScript compilation failed." >&3
+      exit 1
+    fi
+    node build/cliClass.js "$INPUT_PATH"
+    APP_EXIT_STATUS=$?
+    exit $APP_EXIT_STATUS
+  else
+    # Log that the file was not found
+    echo "File not found at the provided path: $INPUT_PATH" >> "$LOG_FILE"
+    echo "File not found at the provided path: $INPUT_PATH" >&3
+    exit 1
+  fi
+else
+  echo "Invalid command or file not found: $1" >&3
+  exit 1
+fi
