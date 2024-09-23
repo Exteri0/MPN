@@ -12,7 +12,7 @@ class BusFactor extends Metrics {
         this.metricCode = 0;
     }
 
-    async calcBusFactor(owner: string = '', repo: string = ''): Promise<void> { 
+    async calcBusFactor(owner: string = '', repo: string = ''): Promise<number> { 
         try {
             if (this.apiCall instanceof GitHubApiCalls && (!owner || !repo)) {
                 throw new Error('Owner and repo are required for GitHub API calls.');
@@ -24,7 +24,7 @@ class BusFactor extends Metrics {
             if (contributors.length === 0) {
                 logger.info('No contributors found.')
                 this.metricCode = 0;
-                return;
+                return -1;
             }
 
             // sort contributors based on the number of contributions (largest to smallest)
@@ -48,10 +48,11 @@ class BusFactor extends Metrics {
 
             // calculate the Bus Factor percentage
             const busFactorPercentage = 1 - (keyContributors / contributors.length);
-            this.metricCode = busFactorPercentage * 100;
-            logger.info(`Bus Factor Calculated: ${this.metricCode}%`);
+            logger.info(`Bus Factor Calculated: ${busFactorPercentage}%`);
+            return busFactorPercentage;
         } catch (error) {
             logger.error('Error while calculating bus factor:', error);
+            return -1;
         }
     }
 

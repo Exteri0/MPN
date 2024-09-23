@@ -321,7 +321,7 @@ export class Correctness extends Metrics {
 }
 
 // Test code at the end of the file
-(async () => {
+/* (async () => {
     const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
     const gitHubApiObj = await apiInstance.callAPI();
     if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
@@ -331,4 +331,4 @@ export class Correctness extends Metrics {
     } else {
         logger.error('Failed to create API object for correctness calculation.');
     }
-})();
+})(); */

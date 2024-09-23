@@ -125,6 +125,6 @@ export class Responsiveness extends Metrics {
     ) {
         let correctnessCalculator = new Responsiveness(gitHubApiObj)
         let score = await correctnessCalculator.ComputeResponsiveness()
-        console.log('Responsiveness score:', score)
+        logger.info('Responsiveness score:', score)
     }
 })()
