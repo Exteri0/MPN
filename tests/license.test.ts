@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+    describe,
+    it,
+    expect,
+    vi,
+    beforeEach,
+    afterEach,
+    afterAll,
+} from 'vitest'
 import License from '../src/Metrics/license' // Adjust path as needed
 import NpmApiCalls from '../src/API/NpmApiCalls'
 import GitHubApiCalls from '../src/API/GitHubApiCalls'
@@ -28,7 +36,7 @@ describe('License Class', () => {
         licenseCalculator = new License(
             (apiObj as GitHubApiCalls) || NpmApiCalls
         )
-        await licenseCalculator.removeDirectoryIfExists('./tmp')
+        await licenseCalculator.removeDirectoryIfExists('./t/tmp')
     })
 
     it('should fetch a license key from the API', async () => {
@@ -54,12 +62,12 @@ describe('License Class', () => {
         vi.spyOn(fs, 'readFile')
 
         const isCompatible = await licenseCalculator.checkLicenseFile(
-            './tmp',
+            './t/tmp',
             compatibleLicenses
         )
         // we didnt clone the repo yet so we should expect false
         expect(isCompatible).toBe(false)
-        expect(fs.pathExists).toHaveBeenCalledWith('./tmp/LICENSE')
+        expect(fs.pathExists).toHaveBeenCalledWith('./t/tmp/LICENSE')
     })
 
     it('should check the LICENSE file and return true for compatible license after cloning', async () => {
@@ -69,12 +77,12 @@ describe('License Class', () => {
         await licenseCalculator.cloneRepository()
 
         const isCompatible = await licenseCalculator.checkLicenseFile(
-            './tmp',
+            './t/tmp',
             compatibleLicenses
         )
         // we did clone the repo this time  so we should expect true
         expect(isCompatible).toBe(true)
-        expect(fs.pathExists).toHaveBeenCalledWith('./tmp/LICENSE')
+        expect(fs.pathExists).toHaveBeenCalledWith('./t/tmp/LICENSE')
     }, 60000)
 
     it('should return false when LICENSE file is not compatible', async () => {
@@ -107,17 +115,17 @@ describe('License Class', () => {
     }, 60000)
 
     it('should remove the tmp directory', async () => {
-        vi.spyOn(fs, 'remove')
-        await licenseCalculator.cloneRepository()
-        await licenseCalculator.removeDirectoryIfExists('./tmp')
-        const exists = await fs.pathExists('./tmp')
+        vi.spyOn(fs, 'remove').mockResolvedValue()
+        // await licenseCalculator.cloneRepository()
+        await licenseCalculator.removeDirectoryIfExists('./t/tmp')
+        const exists = await fs.pathExists('./t/tmp')
         expect(exists).toBe(false)
     }, 60000)
     it('should check if path exists', async () => {
         vi.spyOn(fs, 'pathExists')
 
-        await licenseCalculator.checkReadmeFile('./tmp', compatibleLicenses)
+        await licenseCalculator.checkReadmeFile('./t/tmp', compatibleLicenses)
 
-        expect(fs.pathExists).toHaveBeenCalledWith('./tmp/README.md')
+        expect(fs.pathExists).toHaveBeenCalledWith('./t/tmp/README.md')
     })
 })

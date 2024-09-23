@@ -83,7 +83,7 @@ export default class License extends Metrics {
     }
 
     async cloneRepository(): Promise<void> {
-        const dir = './tmp'
+        const dir = './t/tmp'
         const myUrl = await this.getUrl()
         await this.removeDirectoryIfExists(dir)
         logger.info('Cloning the repository')
@@ -102,7 +102,7 @@ export default class License extends Metrics {
     }
 
     async isLicenseCompatible(): Promise<number> {
-        const dir = './tmp'
+        const dir = './t/tmp'
         await this.cloneRepository()
 
         // First check: README.md
