@@ -38,32 +38,8 @@ if [ "$1" == "install" ]; then
 
 # Check if "test" is passed as the first argument
 elif [ "$1" == "test" ]; then
-  # Redirect all output to LOG_FILE
-  exec > "$LOG_FILE" 2>&1
-  # Run your test suite and generate coverage report
   echo "Running tests..."
-  npx jest --coverage --coverageReporters=json-summary --json --outputFile=test-results.json
-  TEST_EXIT_STATUS=$?
-  if [ $TEST_EXIT_STATUS -eq 0 ]; then
-    # Parse test results from Jest output
-    TEST_RESULTS_JSON="test-results.json"
-    COVERAGE_SUMMARY_JSON="coverage/coverage-summary.json"
-    if [ -f "$TEST_RESULTS_JSON" ] && [ -f "$COVERAGE_SUMMARY_JSON" ]; then
-      TOTAL_TESTS=$(node -pe "require('./$TEST_RESULTS_JSON').numTotalTests")
-      PASSED_TESTS=$(node -pe "require('./$TEST_RESULTS_JSON').numPassedTests")
-      LINE_COVERAGE=$(node -pe "require('./$COVERAGE_SUMMARY_JSON').total.lines.pct")
-      # Round line coverage to the nearest integer
-      LINE_COVERAGE=${LINE_COVERAGE%.*}
-      # Output test summary to stdout
-      echo "$PASSED_TESTS/$TOTAL_TESTS test cases passed. $LINE_COVERAGE% line coverage achieved." >&3
-      exit 0
-    else
-      echo "Test result files not found." >&3
-      exit 1
-    fi
-  else
-    echo "Test suite failed." >&3
-    exit 1
+  npx vitest --coverage
   fi
 # Check if a file path is provided
 elif [[ -n "$1" ]]; then

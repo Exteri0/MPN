@@ -36,7 +36,6 @@ describe('License Class', () => {
         licenseCalculator = new License(
             (apiObj as GitHubApiCalls) || NpmApiCalls
         )
-        await licenseCalculator.removeDirectoryIfExists('./t/tmp')
     })
 
     it('should fetch a license key from the API', async () => {

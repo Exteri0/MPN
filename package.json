@@ -32,7 +32,7 @@
     },
     "type": "module",
     "scripts": {
-        "test": "vitest --exclude **/tmp/**"
+        "test": "vitest --exclude **/t/**"
     },
     "prettier": {
         "singleQuote": true,
