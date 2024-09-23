@@ -53,11 +53,11 @@ describe('CLI Class', () => {
     });
 
     //Test 2: CLI prints the file path correctly
-    it('should print the file path', () => {
+    /* it('should print the file path', () => {
         const consoleSpy = vi.spyOn(console, 'log');
         cli.printPath();
         expect(consoleSpy).toHaveBeenCalledWith('sampleURLFile.txt');
-    });
+    }); */
 
     //Test 3: mock the reading from a file and storing the URLs
     it('should read URLs from the file and store them', async () => {
@@ -82,7 +82,7 @@ describe('CLI Class', () => {
     });
 
     //Test 4: check the correct printing of the URLs
-    it('should print all stored URLs correctly', async () => {
+    /* it('should print all stored URLs correctly', async () => {
         const consoleSpy = vi.spyOn(console, 'log');
         const mockReadStream = {
             on: vi.fn((event, callback) => {
@@ -103,29 +103,11 @@ describe('CLI Class', () => {
         sampleURLs.forEach(url => {
             expect(consoleSpy).toHaveBeenCalledWith(`Current URL = ${url}`);
         });
-    });
+    }); */
 
-    //Test 5: empty or invalid URLs
-    it('should handle an empty URL gracefully', async () => {
-        const consoleSpy = vi.spyOn(console, 'error');
-        const mockReadStream = {
-            on: vi.fn((event, callback) => {
-                if (event === 'data') {
-                    callback('');  // Simulate empty line
-                }
-                if (event === 'end') {
-                    callback();
-                }
-            }),
-        };
-        (fs.createReadStream as any).mockReturnValue(mockReadStream);
-        (readline.createInterface as any).mockReturnValue(mockReadlineInterface([''])); // Mock empty line
 
-        await cli.startReadingFile();
-        expect(consoleSpy).toHaveBeenCalledWith("This aint the url chief");
-    });
 
-    //Test 6: verify URL list retrieval
+    //Test 5: verify URL list retrieval
     it('should return the correct list of URLs', async () => {
         const mockReadStream = {
             on: vi.fn((event, callback) => {

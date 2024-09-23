@@ -26,13 +26,13 @@
         "typescript": "^5.5.4",
         "undici-types": "^6.19.8",
         "v8-compile-cache-lib": "^3.0.1",
-        "vitest": "^2.0.5",
         "winston": "^3.14.2",
         "yn": "^3.1.1"
     },
     "type": "module",
     "scripts": {
-        "test": "vitest --exclude **/tmp/**"
+        "test": "vitest",
+        "test:coverage": "vitest --coverage"
     },
     "prettier": {
         "singleQuote": true,
@@ -49,6 +49,8 @@
     "devDependencies": {
         "@types/base-64": "^1.0.2",
         "@vitest/coverage-v8": "^2.1.1",
-        "tsconfig-paths": "^4.2.0"
+        "c8": "^10.1.2",
+        "tsconfig-paths": "^4.2.0",
+        "vitest": "^2.1.1"
     }
 }

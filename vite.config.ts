@@ -1,8 +1,10 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
     test: {
-        exclude: ['**/t/**'],
+        exclude: ['**/t/**', '**/node_modules/**', '**/dist/**'],
+        globals: true,
+        environment: 'node',
     },
 })
