@@ -116,13 +116,22 @@ export class RampUpTime extends Metrics{
 }
 
 (async () => {
+    
     logger.info('Starting local debug call');
-    const apiInstance = new ApiCalls(["https://github.com/nullivex/nodist"]);
-    const gitHubApiObj = await apiInstance.callAPI();
-    if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
-        let correctnessCalculator = new RampUpTime(gitHubApiObj);
-        let score = await correctnessCalculator.computeRampUpTime();
-        logger.info('RampUpTime score:', score);
-    }
 
+        const apiInstance = new ApiCalls(["https://github.com/Exteri0/MPN"]);
+    
+        try {
+            const gitHubApiObj = await apiInstance.callAPI();
+            if (gitHubApiObj instanceof NpmApiCalls || gitHubApiObj instanceof GitHubApiCalls) {
+                let correctnessCalculator = new RampUpTime(gitHubApiObj);
+                let score = await correctnessCalculator.computeRampUpTime();
+                logger.info(`RampUpTime score for iteration:`, score);
+            }
+        } catch (error) {
+            logger.error(`Error on iteration:`, error);
+        }
+    
+    
+    logger.info('Successfully finished');
 })();

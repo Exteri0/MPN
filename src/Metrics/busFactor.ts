@@ -1,7 +1,7 @@
 import GitHubApiCalls from '../API/GitHubApiCalls.js';
 import NpmApiCalls from '../API/NpmApiCalls.js';
 import Metrics from '../Metrics/Metrics.js'
-import logger from '../logger';
+import logger from '../logger.js';
 import { measureExecutionTime } from '../utils.js'
 
 class BusFactor extends Metrics {
